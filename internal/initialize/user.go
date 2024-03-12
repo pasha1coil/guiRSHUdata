@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	"demofine/internal/models"
 	"demofine/internal/utils"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
@@ -15,10 +16,10 @@ type User struct {
 	TimeAdd time.Time // Время добавления
 }
 
-func showNameInputDialog(w fyne.Window, db *badger.DB) {
+func ShowNameInputDialog(w fyne.Window, db *badger.DB) {
 	entry := widget.NewEntry()
 
-	lastAddedUser, err := getLastAddedUserFromBadger(db)
+	lastAddedUser, err := GetLastAddedUserFromBadger(db)
 	if err != nil {
 		log.Println("Error retrieving last added user:", err)
 		return
@@ -46,7 +47,7 @@ func showNameInputDialog(w fyne.Window, db *badger.DB) {
 	}, w)
 }
 
-func getLastAddedUserFromBadger(db *badger.DB) (User, error) {
+func GetLastAddedUserFromBadger(db *badger.DB) (User, error) {
 	var lastAddedUser User
 
 	err := db.View(func(txn *badger.Txn) error {
@@ -57,6 +58,12 @@ func getLastAddedUserFromBadger(db *badger.DB) (User, error) {
 
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
+			key := item.Key()
+
+			if string(key) == models.FileKey {
+				continue
+			}
+
 			value, err := item.ValueCopy(nil)
 			if err != nil {
 				return err

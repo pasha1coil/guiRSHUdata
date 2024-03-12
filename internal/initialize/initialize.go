@@ -106,7 +106,12 @@ func loadSchedule(db *badger.DB, done chan struct{}) {
 }
 
 func MakeMenu(a fyne.App, w fyne.Window, db *badger.DB) *fyne.MainMenu {
-	fileItem := fyne.NewMenuItem("File", func() {
+
+	nameInputDialogItem := fyne.NewMenuItem("Enter Name", func() {
+		ShowNameInputDialog(w, db)
+	})
+
+	loadScheduleItem := fyne.NewMenuItem("Load Schedule", func() {
 		done := make(chan struct{})
 		go loadSchedule(db, done)
 		go func() {
@@ -114,14 +119,17 @@ func MakeMenu(a fyne.App, w fyne.Window, db *badger.DB) *fyne.MainMenu {
 			showRemainingMenuItems(a, w, db)
 		}()
 	})
-	fileItem.Icon = theme.FileIcon()
 
-	file := fyne.NewMenu("File", fileItem)
+	nameInputDialogItem.Icon = theme.DocumentCreateIcon()
+	loadScheduleItem.Icon = theme.ContentPasteIcon()
 
+	file := fyne.NewMenu("File", nil)
 	main := fyne.NewMainMenu(file)
 
+	file.Items = []*fyne.MenuItem{nameInputDialogItem, loadScheduleItem}
+
 	showRemainingMenuItems(a, w, db)
-	showNameInputDialog(w, db)
+
 	return main
 }
 
