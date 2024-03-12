@@ -19,7 +19,7 @@ func main() {
 	}
 	defer db.Close()
 
-	w := a.NewWindow("Fyne Demo")
+	w := a.NewWindow("RSHU Demo")
 	w.SetMaster()
 
 	models.TopWindow = w
