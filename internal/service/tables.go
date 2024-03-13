@@ -2,15 +2,16 @@ package service
 
 import (
 	"demofine/internal/models"
-	"fmt"
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/tealeg/xlsx"
 	"log"
 )
 
-func (s *Service) MakeTableTab(_ fyne.Window) fyne.CanvasObject {
+var days = []string{"Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"}
+
+func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 	fileData, userName, err := s.LoadDataFromBadger()
 	if err != nil {
 		log.Println("Error loading data from Badger:", err)
@@ -76,37 +77,93 @@ func (s *Service) MakeTableTab(_ fyne.Window) fyne.CanvasObject {
 		}
 	}
 
-	fmt.Println(filter)
+	verticalContainer := fyne.NewContainerWithLayout(layout.NewVBoxLayout())
 
-	table := createTable([]string{})
-
-	return table
-}
-
-func createTable(teacherDisciplines []string) fyne.CanvasObject {
-	days := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
-
-	tableTop := container.NewGridWithRows(len(teacherDisciplines))
-	for _, discipline := range teacherDisciplines {
-		label := widget.NewLabel(discipline)
-		tableTop.Add(label)
+	selectTab := widget.NewSelect(nil, nil)
+	for tab := range filter.Group {
+		selectTab.Options = append(selectTab.Options, tab)
+	}
+	if len(selectTab.Options) > 0 {
+		selectTab.Selected = selectTab.Options[0]
 	}
 
-	tableLeft := container.NewVBox()
-	for _, day := range days {
-		label := widget.NewLabel(day)
-		tableLeft.Add(label)
+	selectType := widget.NewSelect(nil, nil)
+
+	updateTable := func(disciplines []string) {
+		newTable := createTable(disciplines)
+
+		verticalContainer.Add(newTable)
+		verticalContainer.Refresh()
 	}
 
-	tableContent := container.NewGridWithRows(len(days))
-	for range days {
-		for range teacherDisciplines {
-			entry := widget.NewEntry()
-			tableContent.Add(entry)
+	selectTab.OnChanged = func(tab string) {
+		selectType.Options = nil
+		for _, lesson := range filter.Group[tab] {
+			for t := range lesson {
+				selectType.Options = append(selectType.Options, t)
+			}
+		}
+		if len(selectType.Options) > 0 {
+			selectType.Selected = selectType.Options[0]
+		}
+
+		for _, dis := range filter.Group[tab] {
+			updateTable(dis[selectType.Selected])
 		}
 	}
 
-	table := container.NewBorder(nil, nil, tableLeft, nil, container.NewHSplit(tableTop, tableContent))
+	selectType.OnChanged = func(t string) {
+		for _, dis := range filter.Group[selectTab.Selected] {
+			updateTable(dis[t])
+		}
+	}
+
+	verticalContainer.Add(selectTab)
+	verticalContainer.Add(selectType)
+	verticalContainer.Add(widget.NewLabel("ХУЙ"))
+
+	verticalContainer.Refresh()
+
+	return verticalContainer
+}
+
+func createTable(disciplines []string) *widget.Table {
+	numRows := len(disciplines) + 1
+	numCols := len(days) + 1
+
+	columns := make([]string, numCols)
+	columns[0] = "Предметы"
+	copy(columns[1:], days)
+
+	table := widget.NewTable(
+		func() (int, int) {
+			return numRows, numCols
+		},
+		func() fyne.CanvasObject {
+			return widget.NewEntry()
+		},
+		func(i widget.TableCellID, o fyne.CanvasObject) {
+			entry, ok := o.(*widget.Entry)
+			if !ok {
+				return
+			}
+
+			if i.Row == 0 {
+				entry.Text = columns[i.Col]
+			} else {
+				entry.Text = ""
+			}
+		},
+	)
+
+	for i := 0; i < numCols; i++ {
+		table.SetColumnWidth(i, 100)
+	}
+	for i := 0; i < numRows; i++ {
+		table.SetRowHeight(i, 30)
+	}
+
+	table.CreateRenderer()
 
 	return table
 }
