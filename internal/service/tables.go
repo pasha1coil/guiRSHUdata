@@ -77,8 +77,6 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 		}
 	}
 
-	verticalContainer := fyne.NewContainerWithLayout(layout.NewVBoxLayout())
-
 	selectTab := widget.NewSelect(nil, nil)
 	for tab := range filter.Group {
 		selectTab.Options = append(selectTab.Options, tab)
@@ -89,12 +87,25 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 
 	selectType := widget.NewSelect(nil, nil)
 
-	updateTable := func(disciplines []string) {
-		newTable := createTable(disciplines)
+	dialog := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
+		selectTab,
+		selectType,
+		widget.NewButton("Показать таблицу", func() {
+			var data []string
+			var ok bool
+			for _, dis := range filter.Group[selectTab.Selected] {
+				if data, ok = dis[selectType.Selected]; ok {
+					break
+				}
+			}
 
-		verticalContainer.Add(newTable)
-		verticalContainer.Refresh()
-	}
+			table := createTable(data)
+			tableWindow := fyne.CurrentApp().NewWindow("Таблица")
+			tableWindow.SetContent(table)
+			tableWindow.Resize(fyne.NewSize(800, 600))
+			tableWindow.Show()
+		}),
+	)
 
 	selectTab.OnChanged = func(tab string) {
 		selectType.Options = nil
@@ -106,53 +117,39 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 		if len(selectType.Options) > 0 {
 			selectType.Selected = selectType.Options[0]
 		}
-
-		for _, dis := range filter.Group[tab] {
-			updateTable(dis[selectType.Selected])
-		}
 	}
 
-	selectType.OnChanged = func(t string) {
-		for _, dis := range filter.Group[selectTab.Selected] {
-			updateTable(dis[t])
-		}
-	}
+	selectType.OnChanged = func(t string) {}
 
-	verticalContainer.Add(selectTab)
-	verticalContainer.Add(selectType)
-	verticalContainer.Add(widget.NewLabel("ХУЙ"))
-
-	verticalContainer.Refresh()
-
-	return verticalContainer
+	return dialog
 }
 
-func createTable(disciplines []string) *widget.Table {
-	numRows := len(disciplines) + 1
-	numCols := len(days) + 1
+func createTable(arr []string) *widget.Table {
+	var data [][]string
+	data = append(data, arr)
+	for _, date := range days {
+		var row []string
+		row = append(row, date)
+		data = append(data, row)
+	}
 
-	columns := make([]string, numCols)
-	columns[0] = "Предметы"
-	copy(columns[1:], days)
+	numRows := len(data)
+	numCols := len(data[0])
 
 	table := widget.NewTable(
 		func() (int, int) {
 			return numRows, numCols
 		},
 		func() fyne.CanvasObject {
-			return widget.NewEntry()
+			return widget.NewLabel("")
 		},
 		func(i widget.TableCellID, o fyne.CanvasObject) {
-			entry, ok := o.(*widget.Entry)
+			label, ok := o.(*widget.Label)
 			if !ok {
 				return
 			}
 
-			if i.Row == 0 {
-				entry.Text = columns[i.Col]
-			} else {
-				entry.Text = ""
-			}
+			label.SetText(data[i.Row][i.Col])
 		},
 	)
 
@@ -162,8 +159,6 @@ func createTable(disciplines []string) *widget.Table {
 	for i := 0; i < numRows; i++ {
 		table.SetRowHeight(i, 30)
 	}
-
-	table.CreateRenderer()
 
 	return table
 }
