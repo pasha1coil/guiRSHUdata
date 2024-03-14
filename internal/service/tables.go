@@ -3,6 +3,7 @@ package service
 import (
 	"demofine/internal/models"
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/tealeg/xlsx"
@@ -124,41 +125,30 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 	return dialog
 }
 
-func createTable(arr []string) *widget.Table {
-	var data [][]string
-	data = append(data, arr)
-	for _, date := range days {
-		var row []string
-		row = append(row, date)
-		data = append(data, row)
+// todo use grid
+func createTable(subjects []string) fyne.CanvasObject {
+	mainContainer := container.NewVBox()
+
+	daysContainer := container.NewHBox()
+	daysContainer.Add(widget.NewLabel(""))
+	for _, day := range days {
+		label := widget.NewLabel(day)
+		label.Resize(fyne.NewSize(20, 20))
+		daysContainer.Add(label)
+	}
+	mainContainer.Add(daysContainer)
+
+	for _, subject := range subjects {
+		subjectRow := container.NewHBox()
+		label := widget.NewLabel(subject)
+		label.Resize(fyne.NewSize(1, label.MinSize().Height))
+		subjectRow.Add(label)
+		for range days {
+			entry := widget.NewEntry()
+			subjectRow.Add(entry)
+		}
+		mainContainer.Add(subjectRow)
 	}
 
-	numRows := len(data)
-	numCols := len(data[0])
-
-	table := widget.NewTable(
-		func() (int, int) {
-			return numRows, numCols
-		},
-		func() fyne.CanvasObject {
-			return widget.NewLabel("")
-		},
-		func(i widget.TableCellID, o fyne.CanvasObject) {
-			label, ok := o.(*widget.Label)
-			if !ok {
-				return
-			}
-
-			label.SetText(data[i.Row][i.Col])
-		},
-	)
-
-	for i := 0; i < numCols; i++ {
-		table.SetColumnWidth(i, 100)
-	}
-	for i := 0; i < numRows; i++ {
-		table.SetRowHeight(i, 30)
-	}
-
-	return table
+	return mainContainer
 }
