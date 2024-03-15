@@ -125,28 +125,24 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 	return dialog
 }
 
-// todo use grid
 func createTable(subjects []string) fyne.CanvasObject {
-	mainContainer := container.NewVBox()
+	var size fyne.Size
 
-	daysContainer := container.NewHBox()
-	daysContainer.Add(widget.NewLabel(""))
-	for _, day := range days {
-		label := widget.NewLabel(day)
-		label.Resize(fyne.NewSize(20, 20))
-		daysContainer.Add(label)
-	}
-	mainContainer.Add(daysContainer)
+	mainContainer := container.NewVBox()
 
 	for _, subject := range subjects {
 		subjectRow := container.NewHBox()
+
 		label := widget.NewLabel(subject)
-		label.Resize(fyne.NewSize(1, label.MinSize().Height))
+		label.Resize(fyne.NewSize(size.Width, size.Height))
 		subjectRow.Add(label)
-		for range days {
+
+		for _, i := range days {
 			entry := widget.NewEntry()
+			entry.PlaceHolder = i
 			subjectRow.Add(entry)
 		}
+
 		mainContainer.Add(subjectRow)
 	}
 
