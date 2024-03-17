@@ -2,15 +2,17 @@ package service
 
 import (
 	"demofine/internal/models"
+	"demofine/internal/utils"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/tealeg/xlsx"
 	"log"
+	"strings"
 )
 
-var days = []string{"Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"}
+var days = []string{"Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"}
 
 func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 	fileData, userName, err := s.LoadDataFromBadger()
@@ -126,25 +128,73 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 }
 
 func createTable(subjects []string) fyne.CanvasObject {
-	var size fyne.Size
+	mainContainer := container.NewWithoutLayout()
 
-	mainContainer := container.NewVBox()
+	upperW := container.NewWithoutLayout()
+
+	subjectRowY := float32(50)
+
+	downW := container.NewWithoutLayout()
+	downW.Move(fyne.NewPos(100, 100))
+
+	was := false
 
 	for _, subject := range subjects {
-		subjectRow := container.NewHBox()
+		upperSubjectRow := container.NewWithoutLayout()
+		downSubjectRow := container.NewWithoutLayout()
 
-		label := widget.NewLabel(subject)
-		label.Resize(fyne.NewSize(size.Width, size.Height))
-		subjectRow.Add(label)
-
-		for _, i := range days {
-			entry := widget.NewEntry()
-			entry.PlaceHolder = i
-			subjectRow.Add(entry)
+		if !was {
+			upLb := widget.NewLabel("Верхняя неделя")
+			upLb.Move(fyne.NewPos(400, 0))
+			dnLb := widget.NewLabel("Нижняя неделя")
+			dnLb.Move(fyne.NewPos(400, 215))
+			upperSubjectRow.Add(upLb)
+			downSubjectRow.Add(dnLb)
+			was = true
 		}
 
-		mainContainer.Add(subjectRow)
+		upperInitials := subject
+		if strings.Contains(subject, " ") {
+			upperInitials = utils.GetInitials(subject)
+		}
+		downInitials := upperInitials
+
+		upperLabel := widget.NewLabel(upperInitials)
+		upperLabel.Resize(fyne.NewSize(100, 30))
+		upperLabel.Move(fyne.NewPos(0, subjectRowY))
+		upperLabel.Wrapping = fyne.TextWrapWord
+		upperSubjectRow.Add(upperLabel)
+
+		downLabel := widget.NewLabel(downInitials)
+		downLabel.Resize(fyne.NewSize(100, 30))
+		downLabel.Move(fyne.NewPos(0, subjectRowY+200))
+		downLabel.Wrapping = fyne.TextWrapWord
+		downSubjectRow.Add(downLabel)
+
+		dayX := float32(115)
+		for _, day := range days {
+			upperEntry := widget.NewEntry()
+			upperEntry.PlaceHolder = day
+			upperEntry.Resize(fyne.NewSize(100, 30))
+			upperEntry.Move(fyne.NewPos(dayX, subjectRowY))
+			upperSubjectRow.Add(upperEntry)
+
+			downEntry := widget.NewEntry()
+			downEntry.PlaceHolder = day
+			downEntry.Resize(fyne.NewSize(100, 30))
+			downEntry.Move(fyne.NewPos(dayX, subjectRowY+200))
+			downSubjectRow.Add(downEntry)
+
+			dayX += float32(115)
+		}
+
+		upperW.Add(upperSubjectRow)
+		downW.Add(downSubjectRow)
+
+		subjectRowY += float32(35)
 	}
+
+	mainContainer.Add(container.NewVBox(upperW, downW))
 
 	return mainContainer
 }
