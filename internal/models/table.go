@@ -29,3 +29,11 @@ type LoadedFile struct {
 	RankClever     []any
 	ProgressClever []any
 }
+
+type EntryData struct {
+	Subject  string
+	Group    string
+	Type     string
+	UpperDay map[string]map[string]string
+	LowerDay map[string]map[string]string
+}

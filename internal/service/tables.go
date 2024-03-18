@@ -3,6 +3,7 @@ package service
 import (
 	"demofine/internal/models"
 	"demofine/internal/utils"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
@@ -102,7 +103,7 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 				}
 			}
 
-			table := createTable(data)
+			table := createTable(data, selectTab.Selected, selectType.Selected)
 			tableWindow := fyne.CurrentApp().NewWindow("Таблица")
 			tableWindow.SetContent(table)
 			tableWindow.Resize(fyne.NewSize(800, 600))
@@ -127,9 +128,9 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 	return dialog
 }
 
-func createTable(subjects []string) fyne.CanvasObject {
-	mainContainer := container.NewWithoutLayout()
+var subjectInfo = make(map[*widget.Entry]string)
 
+func createTable(subjects []string, group string, lessonType string) fyne.CanvasObject {
 	upperW := container.NewWithoutLayout()
 
 	subjectRowY := float32(50)
@@ -138,6 +139,8 @@ func createTable(subjects []string) fyne.CanvasObject {
 	downW.Move(fyne.NewPos(100, 100))
 
 	was := false
+
+	var entryWidgets []*widget.Entry
 
 	for _, subject := range subjects {
 		upperSubjectRow := container.NewWithoutLayout()
@@ -174,13 +177,23 @@ func createTable(subjects []string) fyne.CanvasObject {
 		dayX := float32(115)
 		for _, day := range days {
 			upperEntry := widget.NewEntry()
-			upperEntry.PlaceHolder = day
+			upperEntry.SetPlaceHolder(day)
+			entryWidgets = append(entryWidgets, upperEntry)
+			subjectInfo[upperEntry] = subject
+			upperEntry.OnChanged = func(text string) {
+				updateData(upperEntry, 1)
+			}
 			upperEntry.Resize(fyne.NewSize(100, 30))
 			upperEntry.Move(fyne.NewPos(dayX, subjectRowY))
 			upperSubjectRow.Add(upperEntry)
 
 			downEntry := widget.NewEntry()
-			downEntry.PlaceHolder = day
+			downEntry.SetPlaceHolder(day)
+			entryWidgets = append(entryWidgets, downEntry)
+			subjectInfo[downEntry] = subject
+			downEntry.OnChanged = func(text string) {
+				updateData(downEntry, 0)
+			}
 			downEntry.Resize(fyne.NewSize(100, 30))
 			downEntry.Move(fyne.NewPos(dayX, subjectRowY+200))
 			downSubjectRow.Add(downEntry)
@@ -194,7 +207,27 @@ func createTable(subjects []string) fyne.CanvasObject {
 		subjectRowY += float32(35)
 	}
 
-	mainContainer.Add(container.NewVBox(upperW, downW))
+	addButton := widget.NewButton("Добавить", func() {
+		//for _, entryWidget := range entryWidgets {
+		//	updateData(entryWidget)
+		//}
+	})
+
+	rightContainer := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), addButton, layout.NewSpacer())
+
+	mainContainer := container.New(layout.NewHBoxLayout(),
+		container.NewVBox(upperW, downW),
+		container.New(layout.NewVBoxLayout(), layout.NewSpacer(), rightContainer))
 
 	return mainContainer
+}
+
+func updateData(entry *widget.Entry, week int) {
+	if week == 1 {
+		subject := subjectInfo[entry]
+		fmt.Println("Subject:", subject, "Text:", entry.Text, "WEEk:", "UP")
+	} else {
+		subject := subjectInfo[entry]
+		fmt.Println("Subject:", subject, "Text:", entry.Text, "WEEk:", "DOWN")
+	}
 }
