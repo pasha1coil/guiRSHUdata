@@ -242,6 +242,7 @@ func createTable(subjects []models.Subjects, group string, lessonType string, mo
 
 func updateData(entry *widget.Entry, week int, group string, lessonType string, subjectInfo map[*widget.Entry]models.Subjects, month string) {
 	subject := subjectInfo[entry]
+	subject.Entry = entry.Text
 	key := utils.GenerateHash(group + lessonType)
 
 	if FinishData[key] == nil {
@@ -258,14 +259,12 @@ func updateData(entry *widget.Entry, week int, group string, lessonType string, 
 	if entryData == nil {
 		entryData = &models.EntryData{
 			Month:    month,
-			Subject:  subject.Subject,
 			Group:    group,
-			Number:   subject.Number,
 			Type:     lessonType,
-			UpperDay: make(map[string]map[models.Subjects]string),
-			LowerDay: make(map[string]map[models.Subjects]string),
+			UpperDay: make(map[string]map[string][1]models.Subjects),
+			LowerDay: make(map[string]map[string][1]models.Subjects),
 		}
-		FinishData[key] = append(FinishData[key], *entryData)
+		FinishData[key] = []models.EntryData{*entryData}
 	}
 
 	dayMap := entryData.UpperDay
@@ -275,7 +274,9 @@ func updateData(entry *widget.Entry, week int, group string, lessonType string, 
 
 	day := entry.PlaceHolder
 	if dayMap[day] == nil {
-		dayMap[day] = make(map[models.Subjects]string)
+		dayMap[day] = make(map[string][1]models.Subjects)
 	}
-	dayMap[day][subject] = entry.Text
+
+	hash := subject.Subject + subject.Number
+	dayMap[day][utils.GenerateHash(hash)] = [1]models.Subjects{subject}
 }

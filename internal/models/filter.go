@@ -8,4 +8,5 @@ type Filter struct {
 type Subjects struct {
 	Subject string
 	Number  string
+	Entry   string
 }

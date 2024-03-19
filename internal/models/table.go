@@ -37,6 +37,6 @@ type EntryData struct {
 	Group    string
 	Type     string
 	Number   string
-	UpperDay map[string]map[Subjects]string
-	LowerDay map[string]map[Subjects]string
+	UpperDay map[string]map[string][1]Subjects
+	LowerDay map[string]map[string][1]Subjects
 }
