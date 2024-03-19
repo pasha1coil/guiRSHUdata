@@ -15,6 +15,8 @@ import (
 
 var days = []string{"Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"}
 
+var FinishData = make(map[string][]models.EntryData)
+
 func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 	fileData, userName, err := s.LoadDataFromBadger()
 	if err != nil {
@@ -55,27 +57,28 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 
 	var filter models.Filter
 	filter.FIO = userName
-	filter.Group = make(map[string][]map[string][]string)
+	filter.Group = make(map[string][]map[string][]models.Subjects)
 	for i, teacher := range loadedFile.FIO {
 		if teacher == userName {
 			group := loadedFile.Group[i].(string)
 			discipline := loadedFile.Discipline[i].(string)
 			lessonType := loadedFile.Type[i].(string)
-
+			docNumber := loadedFile.Number[i].(string)
+			fmt.Println("docNumber", docNumber)
 			if _, ok := filter.Group[group]; !ok {
-				filter.Group[group] = make([]map[string][]string, 0)
+				filter.Group[group] = make([]map[string][]models.Subjects, 0)
 			}
 
 			var found bool
 			for j := range filter.Group[group] {
 				if filter.Group[group][j][lessonType] != nil {
-					filter.Group[group][j][lessonType] = append(filter.Group[group][j][lessonType], discipline)
+					filter.Group[group][j][lessonType] = append(filter.Group[group][j][lessonType], models.Subjects{Subject: discipline, Number: docNumber})
 					found = true
 				}
 			}
 			if !found {
-				newLesson := make(map[string][]string)
-				newLesson[lessonType] = []string{discipline}
+				newLesson := make(map[string][]models.Subjects)
+				newLesson[lessonType] = append(newLesson[lessonType], models.Subjects{Subject: discipline, Number: docNumber})
 				filter.Group[group] = append(filter.Group[group], newLesson)
 			}
 		}
@@ -95,7 +98,7 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 		selectTab,
 		selectType,
 		widget.NewButton("Показать таблицу", func() {
-			var data []string
+			var data []models.Subjects
 			var ok bool
 			for _, dis := range filter.Group[selectTab.Selected] {
 				if data, ok = dis[selectType.Selected]; ok {
@@ -128,9 +131,9 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 	return dialog
 }
 
-var subjectInfo = make(map[*widget.Entry]string)
-
-func createTable(subjects []string, group string, lessonType string) fyne.CanvasObject {
+func createTable(subjects []models.Subjects, group string, lessonType string) fyne.CanvasObject {
+	var subjectInfoUp = make(map[*widget.Entry]models.Subjects)
+	var subjectInfoDown = make(map[*widget.Entry]models.Subjects)
 	upperW := container.NewWithoutLayout()
 
 	subjectRowY := float32(50)
@@ -156,9 +159,9 @@ func createTable(subjects []string, group string, lessonType string) fyne.Canvas
 			was = true
 		}
 
-		upperInitials := subject
-		if strings.Contains(subject, " ") {
-			upperInitials = utils.GetInitials(subject)
+		upperInitials := subject.Subject
+		if strings.Contains(subject.Subject, " ") {
+			upperInitials = utils.GetInitials(subject.Subject)
 		}
 		downInitials := upperInitials
 
@@ -179,9 +182,9 @@ func createTable(subjects []string, group string, lessonType string) fyne.Canvas
 			upperEntry := widget.NewEntry()
 			upperEntry.SetPlaceHolder(day)
 			entryWidgets = append(entryWidgets, upperEntry)
-			subjectInfo[upperEntry] = subject
+			subjectInfoUp[upperEntry] = subject
 			upperEntry.OnChanged = func(text string) {
-				updateData(upperEntry, 1)
+				updateData(upperEntry, 1, group, lessonType, subjectInfoUp)
 			}
 			upperEntry.Resize(fyne.NewSize(100, 30))
 			upperEntry.Move(fyne.NewPos(dayX, subjectRowY))
@@ -190,9 +193,9 @@ func createTable(subjects []string, group string, lessonType string) fyne.Canvas
 			downEntry := widget.NewEntry()
 			downEntry.SetPlaceHolder(day)
 			entryWidgets = append(entryWidgets, downEntry)
-			subjectInfo[downEntry] = subject
+			subjectInfoDown[downEntry] = subject
 			downEntry.OnChanged = func(text string) {
-				updateData(downEntry, 0)
+				updateData(downEntry, 0, group, lessonType, subjectInfoDown)
 			}
 			downEntry.Resize(fyne.NewSize(100, 30))
 			downEntry.Move(fyne.NewPos(dayX, subjectRowY+200))
@@ -222,12 +225,41 @@ func createTable(subjects []string, group string, lessonType string) fyne.Canvas
 	return mainContainer
 }
 
-func updateData(entry *widget.Entry, week int) {
-	if week == 1 {
-		subject := subjectInfo[entry]
-		fmt.Println("Subject:", subject, "Text:", entry.Text, "WEEk:", "UP")
-	} else {
-		subject := subjectInfo[entry]
-		fmt.Println("Subject:", subject, "Text:", entry.Text, "WEEk:", "DOWN")
+func updateData(entry *widget.Entry, week int, group string, lessonType string, subjectInfo map[*widget.Entry]models.Subjects) {
+	subject := subjectInfo[entry]
+	key := utils.GenerateHash(group + lessonType)
+
+	if FinishData[key] == nil {
+		FinishData[key] = make([]models.EntryData, 0)
 	}
+
+	var entryData *models.EntryData
+	for i, ed := range FinishData[key] {
+		if ed.Subject == subject.Subject {
+			entryData = &FinishData[key][i]
+			break
+		}
+	}
+	if entryData == nil {
+		entryData = &models.EntryData{
+			Subject:  subject.Subject,
+			Group:    group,
+			Number:   subject.Number,
+			Type:     lessonType,
+			UpperDay: make(map[string]map[models.Subjects]string),
+			LowerDay: make(map[string]map[models.Subjects]string),
+		}
+		FinishData[key] = append(FinishData[key], *entryData)
+	}
+
+	dayMap := entryData.UpperDay
+	if week == 0 {
+		dayMap = entryData.LowerDay
+	}
+
+	day := entry.PlaceHolder
+	if dayMap[day] == nil {
+		dayMap[day] = make(map[models.Subjects]string)
+	}
+	dayMap[day][subject] = entry.Text
 }
