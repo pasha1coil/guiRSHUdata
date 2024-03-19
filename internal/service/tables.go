@@ -3,9 +3,9 @@ package service
 import (
 	"demofine/internal/models"
 	"demofine/internal/utils"
-	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/tealeg/xlsx"
@@ -15,9 +15,12 @@ import (
 
 var days = []string{"Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"}
 
-var FinishData = make(map[string][]models.EntryData)
+var FinishData = map[string][]models.EntryData{}
 
-func (s *Service) MakeTableTab(_ fyne.Window, month string) fyne.CanvasObject {
+func (s *Service) MakeTableTab(w fyne.Window, month string) fyne.CanvasObject {
+
+	FinishData = make(map[string][]models.EntryData)
+
 	fileData, userName, err := s.LoadDataFromBadger()
 	if err != nil {
 		log.Println("Error loading data from Badger:", err)
@@ -64,7 +67,6 @@ func (s *Service) MakeTableTab(_ fyne.Window, month string) fyne.CanvasObject {
 			discipline := loadedFile.Discipline[i].(string)
 			lessonType := loadedFile.Type[i].(string)
 			docNumber := loadedFile.Number[i].(string)
-			fmt.Println("docNumber", docNumber)
 			if _, ok := filter.Group[group]; !ok {
 				filter.Group[group] = make([]map[string][]models.Subjects, 0)
 			}
@@ -94,6 +96,20 @@ func (s *Service) MakeTableTab(_ fyne.Window, month string) fyne.CanvasObject {
 
 	selectType := widget.NewSelect(nil, nil)
 
+	content := container.NewVBox(
+		widget.NewLabel("Вы уверены, что хотите продолжить?"),
+	)
+
+	createReportButton := widget.NewButton("Создать отчет", func() {
+		confirm := dialog.NewCustomConfirm("Вы уверены, что хотите создать отчет?", "ДА", "Отмена", content, func(confirmed bool) {
+			if confirmed {
+				s.generateReport(FinishData)
+			}
+		}, w)
+
+		confirm.Show()
+	})
+
 	dialog := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		selectTab,
 		selectType,
@@ -106,12 +122,13 @@ func (s *Service) MakeTableTab(_ fyne.Window, month string) fyne.CanvasObject {
 				}
 			}
 
-			table := createTable(data, selectTab.Selected, selectType.Selected, month)
 			tableWindow := fyne.CurrentApp().NewWindow("Таблица")
+			table := createTable(data, selectTab.Selected, selectType.Selected, month, tableWindow)
 			tableWindow.SetContent(table)
 			tableWindow.Resize(fyne.NewSize(800, 600))
 			tableWindow.Show()
 		}),
+		createReportButton,
 	)
 
 	selectTab.OnChanged = func(tab string) {
@@ -131,7 +148,7 @@ func (s *Service) MakeTableTab(_ fyne.Window, month string) fyne.CanvasObject {
 	return dialog
 }
 
-func createTable(subjects []models.Subjects, group string, lessonType string, month string) fyne.CanvasObject {
+func createTable(subjects []models.Subjects, group string, lessonType string, month string, tableWindow fyne.Window) fyne.CanvasObject {
 	var subjectInfoUp = make(map[*widget.Entry]models.Subjects)
 	var subjectInfoDown = make(map[*widget.Entry]models.Subjects)
 	upperW := container.NewWithoutLayout()
@@ -211,9 +228,7 @@ func createTable(subjects []models.Subjects, group string, lessonType string, mo
 	}
 
 	addButton := widget.NewButton("Добавить", func() {
-		//for _, entryWidget := range entryWidgets {
-		//	updateData(entryWidget)
-		//}
+		tableWindow.Close()
 	})
 
 	rightContainer := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), addButton, layout.NewSpacer())
@@ -263,6 +278,4 @@ func updateData(entry *widget.Entry, week int, group string, lessonType string, 
 		dayMap[day] = make(map[models.Subjects]string)
 	}
 	dayMap[day][subject] = entry.Text
-
-	fmt.Println(FinishData)
 }
