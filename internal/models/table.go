@@ -4,7 +4,8 @@ import "fyne.io/fyne/v2"
 
 type Table struct {
 	Title string
-	View  func(w fyne.Window) fyne.CanvasObject
+	View  func(w fyne.Window, month string) fyne.CanvasObject
+	Month string
 }
 
 var (
@@ -31,6 +32,7 @@ type LoadedFile struct {
 }
 
 type EntryData struct {
+	Month    string
 	Subject  string
 	Group    string
 	Type     string

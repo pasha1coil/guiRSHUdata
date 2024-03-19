@@ -17,7 +17,7 @@ var days = []string{"Понедельник", "Вторник", "Среда", "�
 
 var FinishData = make(map[string][]models.EntryData)
 
-func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
+func (s *Service) MakeTableTab(_ fyne.Window, month string) fyne.CanvasObject {
 	fileData, userName, err := s.LoadDataFromBadger()
 	if err != nil {
 		log.Println("Error loading data from Badger:", err)
@@ -106,7 +106,7 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 				}
 			}
 
-			table := createTable(data, selectTab.Selected, selectType.Selected)
+			table := createTable(data, selectTab.Selected, selectType.Selected, month)
 			tableWindow := fyne.CurrentApp().NewWindow("Таблица")
 			tableWindow.SetContent(table)
 			tableWindow.Resize(fyne.NewSize(800, 600))
@@ -131,7 +131,7 @@ func (s *Service) MakeTableTab(w fyne.Window) fyne.CanvasObject {
 	return dialog
 }
 
-func createTable(subjects []models.Subjects, group string, lessonType string) fyne.CanvasObject {
+func createTable(subjects []models.Subjects, group string, lessonType string, month string) fyne.CanvasObject {
 	var subjectInfoUp = make(map[*widget.Entry]models.Subjects)
 	var subjectInfoDown = make(map[*widget.Entry]models.Subjects)
 	upperW := container.NewWithoutLayout()
@@ -184,7 +184,7 @@ func createTable(subjects []models.Subjects, group string, lessonType string) fy
 			entryWidgets = append(entryWidgets, upperEntry)
 			subjectInfoUp[upperEntry] = subject
 			upperEntry.OnChanged = func(text string) {
-				updateData(upperEntry, 1, group, lessonType, subjectInfoUp)
+				updateData(upperEntry, 1, group, lessonType, subjectInfoUp, month)
 			}
 			upperEntry.Resize(fyne.NewSize(100, 30))
 			upperEntry.Move(fyne.NewPos(dayX, subjectRowY))
@@ -195,7 +195,7 @@ func createTable(subjects []models.Subjects, group string, lessonType string) fy
 			entryWidgets = append(entryWidgets, downEntry)
 			subjectInfoDown[downEntry] = subject
 			downEntry.OnChanged = func(text string) {
-				updateData(downEntry, 0, group, lessonType, subjectInfoDown)
+				updateData(downEntry, 0, group, lessonType, subjectInfoDown, month)
 			}
 			downEntry.Resize(fyne.NewSize(100, 30))
 			downEntry.Move(fyne.NewPos(dayX, subjectRowY+200))
@@ -225,7 +225,7 @@ func createTable(subjects []models.Subjects, group string, lessonType string) fy
 	return mainContainer
 }
 
-func updateData(entry *widget.Entry, week int, group string, lessonType string, subjectInfo map[*widget.Entry]models.Subjects) {
+func updateData(entry *widget.Entry, week int, group string, lessonType string, subjectInfo map[*widget.Entry]models.Subjects, month string) {
 	subject := subjectInfo[entry]
 	key := utils.GenerateHash(group + lessonType)
 
@@ -242,6 +242,7 @@ func updateData(entry *widget.Entry, week int, group string, lessonType string, 
 	}
 	if entryData == nil {
 		entryData = &models.EntryData{
+			Month:    month,
 			Subject:  subject.Subject,
 			Group:    group,
 			Number:   subject.Number,
@@ -262,4 +263,6 @@ func updateData(entry *widget.Entry, week int, group string, lessonType string, 
 		dayMap[day] = make(map[models.Subjects]string)
 	}
 	dayMap[day][subject] = entry.Text
+
+	fmt.Println(FinishData)
 }

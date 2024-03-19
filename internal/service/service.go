@@ -4,6 +4,7 @@ import (
 	"demofine/internal/models"
 	"demofine/internal/repository"
 	"demofine/internal/utils"
+	"fyne.io/fyne/v2"
 )
 
 type Service struct {
@@ -40,9 +41,14 @@ func (s *Service) InstallTables() {
 
 func (s *Service) createTable(month string) {
 	title := month + " Расписание"
+	viewFunc := func(w fyne.Window, month string) fyne.CanvasObject {
+		return s.MakeTableTab(w, month)
+	}
+
 	models.Tables[month] = models.Table{
 		Title: title,
-		View:  s.MakeTableTab,
+		View:  viewFunc,
+		Month: month,
 	}
 	models.TableIndex[""] = append(models.TableIndex[""], month)
 }

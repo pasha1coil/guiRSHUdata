@@ -63,7 +63,7 @@ func showRemainingMenuItems(a fyne.App, w fyne.Window, svc *service.Service) {
 			if fyne.CurrentDevice().IsMobile() {
 				child := a.NewWindow(t.Title)
 				models.TopWindow = child
-				child.SetContent(t.View(models.TopWindow))
+				child.SetContent(t.View(models.TopWindow, t.Month))
 				child.Show()
 				child.SetOnClosed(func() {
 					models.TopWindow = w
@@ -73,7 +73,7 @@ func showRemainingMenuItems(a fyne.App, w fyne.Window, svc *service.Service) {
 
 			title.SetText(t.Title)
 
-			content.Objects = []fyne.CanvasObject{t.View(w)}
+			content.Objects = []fyne.CanvasObject{t.View(w, t.Month)}
 			content.Refresh()
 		}
 
