@@ -3,15 +3,12 @@ package service
 import (
 	"demofine/internal/models"
 	"demofine/internal/utils"
-	"fmt"
 	"github.com/tealeg/xlsx"
 	"log"
 )
 
 func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 	file := xlsx.NewFile()
-
-	fmt.Println(finishData)
 
 	sheet, err := file.AddSheet("Отчет")
 	if err != nil {

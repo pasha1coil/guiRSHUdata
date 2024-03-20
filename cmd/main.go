@@ -4,12 +4,15 @@ import (
 	"demofine/data"
 	"demofine/internal/initialize"
 	"demofine/internal/models"
+	"demofine/internal/service"
 	"fyne.io/fyne/v2/app"
 	"github.com/dgraph-io/badger/v4"
 	"log"
 )
 
 func main() {
+	models.Dates = service.GenerateDays()
+
 	a := app.NewWithID("RSHU.demo")
 	a.SetIcon(data.FyneLogo)
 	initialize.LogLifecycle(a)

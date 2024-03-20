@@ -7,3 +7,5 @@ const DbPath = "schedule.db"
 const FileKey = "file"
 
 var TopWindow fyne.Window
+
+var Dates []DayInfo
