@@ -15,7 +15,7 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 		log.Fatal("Ошибка при создании листа:", err)
 	}
 
-	headers := []string{"№ п/п", "Название предмета", "Дата", "День недели", "Факультет, курс, группа", "Тип занятий", "Часы"}
+	headers := []string{"№ п/п", "Название предмета", "Дата", "День недели", "Тип недели", "Факультет, курс, группа", "Тип занятий", "Часы"}
 	row := sheet.AddRow()
 	for _, header := range headers {
 		cell := row.AddCell()
@@ -34,26 +34,28 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 						if data, ok := forGenerateUp[hash]; ok {
 							if data.Created.Before(subject.Created) {
 								forGenerateUp[hash] = models.GenerateReport{
-									Month:   entry.Month,
-									Group:   entry.Group,
-									Type:    entry.Type,
-									Subject: subject.Subject,
-									DayWeek: subject.WeekDay,
-									Number:  subject.Number,
-									Entry:   subject.Entry,
-									Created: subject.Created,
+									Month:    entry.Month,
+									Group:    entry.Group,
+									Type:     entry.Type,
+									Subject:  subject.Subject,
+									DayWeek:  subject.WeekDay,
+									Number:   subject.Number,
+									Entry:    subject.Entry,
+									Created:  subject.Created,
+									TypeWeek: models.UpperWeek,
 								}
 							}
 						} else {
 							forGenerateUp[hash] = models.GenerateReport{
-								Month:   entry.Month,
-								Group:   entry.Group,
-								Type:    entry.Type,
-								Subject: subject.Subject,
-								DayWeek: subject.WeekDay,
-								Number:  subject.Number,
-								Entry:   subject.Entry,
-								Created: subject.Created,
+								Month:    entry.Month,
+								Group:    entry.Group,
+								Type:     entry.Type,
+								Subject:  subject.Subject,
+								DayWeek:  subject.WeekDay,
+								Number:   subject.Number,
+								Entry:    subject.Entry,
+								Created:  subject.Created,
+								TypeWeek: models.UpperWeek,
 							}
 						}
 					}
@@ -66,26 +68,28 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 						if data, ok := forGenerateDown[hash]; ok {
 							if data.Created.Before(subject.Created) {
 								forGenerateDown[hash] = models.GenerateReport{
-									Month:   entry.Month,
-									Group:   entry.Group,
-									Type:    entry.Type,
-									Subject: subject.Subject,
-									DayWeek: subject.WeekDay,
-									Number:  subject.Number,
-									Entry:   subject.Entry,
-									Created: subject.Created,
+									Month:    entry.Month,
+									Group:    entry.Group,
+									Type:     entry.Type,
+									Subject:  subject.Subject,
+									DayWeek:  subject.WeekDay,
+									Number:   subject.Number,
+									Entry:    subject.Entry,
+									Created:  subject.Created,
+									TypeWeek: models.LowerWeek,
 								}
 							}
 						} else {
 							forGenerateDown[hash] = models.GenerateReport{
-								Month:   entry.Month,
-								Group:   entry.Group,
-								Type:    entry.Type,
-								Subject: subject.Subject,
-								DayWeek: subject.WeekDay,
-								Number:  subject.Number,
-								Entry:   subject.Entry,
-								Created: subject.Created,
+								Month:    entry.Month,
+								Group:    entry.Group,
+								Type:     entry.Type,
+								Subject:  subject.Subject,
+								DayWeek:  subject.WeekDay,
+								Number:   subject.Number,
+								Entry:    subject.Entry,
+								Created:  subject.Created,
+								TypeWeek: models.LowerWeek,
 							}
 						}
 					}
@@ -93,55 +97,66 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 			}
 		}
 	}
+	for _, day := range models.DaysInfo {
+		for _, res := range forGenerateUp {
+			if day.Date.Month().String() == res.Month && day.Weekday.String() == res.DayWeek && day.WeekType == res.TypeWeek {
+				row := sheet.AddRow()
 
-	for _, res := range forGenerateUp {
-		row := sheet.AddRow()
+				cell := row.AddCell()
+				cell.Value = res.Number
 
-		cell := row.AddCell()
-		cell.Value = res.Number
+				cell = row.AddCell()
+				cell.Value = res.Subject
 
-		cell = row.AddCell()
-		cell.Value = res.Subject
+				cell = row.AddCell()
+				cell.Value = day.Date.String()
 
-		cell = row.AddCell()
-		cell.Value = res.Month
+				cell = row.AddCell()
+				cell.Value = res.DayWeek
 
-		cell = row.AddCell()
-		cell.Value = res.DayWeek
+				cell = row.AddCell()
+				cell.Value = "Верхняя"
 
-		cell = row.AddCell()
-		cell.Value = res.Group
+				cell = row.AddCell()
+				cell.Value = res.Group
 
-		cell = row.AddCell()
-		cell.Value = res.Type
+				cell = row.AddCell()
+				cell.Value = res.Type
 
-		cell = row.AddCell()
-		cell.Value = res.Entry
-	}
+				cell = row.AddCell()
+				cell.Value = res.Entry
+			}
+		}
 
-	for _, res := range forGenerateDown {
-		row := sheet.AddRow()
+		for _, res := range forGenerateDown {
+			if day.Date.Month().String() == res.Month && day.Weekday.String() == res.DayWeek && day.WeekType == res.TypeWeek {
+				row := sheet.AddRow()
 
-		cell := row.AddCell()
-		cell.Value = res.Number
+				cell := row.AddCell()
+				cell.Value = res.Number
 
-		cell = row.AddCell()
-		cell.Value = res.Subject
+				cell = row.AddCell()
+				cell.Value = res.Subject
 
-		cell = row.AddCell()
-		cell.Value = res.Month
+				cell = row.AddCell()
+				cell.Value = day.Date.String()
 
-		cell = row.AddCell()
-		cell.Value = res.DayWeek
+				cell = row.AddCell()
+				cell.Value = res.DayWeek
 
-		cell = row.AddCell()
-		cell.Value = res.Group
+				cell = row.AddCell()
+				cell.Value = "Нижняя"
 
-		cell = row.AddCell()
-		cell.Value = res.Type
+				cell = row.AddCell()
+				cell.Value = res.Group
 
-		cell = row.AddCell()
-		cell.Value = res.Entry
+				cell = row.AddCell()
+				cell.Value = res.Type
+
+				cell = row.AddCell()
+				cell.Value = res.Entry
+			}
+		}
 	}
 
 	if err := file.Save("report.xlsx"); err != nil {

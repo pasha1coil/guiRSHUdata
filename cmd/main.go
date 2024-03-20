@@ -11,7 +11,9 @@ import (
 )
 
 func main() {
-	models.Dates = service.GenerateDays()
+	dates := service.GenerateDays()
+
+	models.DaysInfo = dates
 
 	a := app.NewWithID("RSHU.demo")
 	a.SetIcon(data.FyneLogo)

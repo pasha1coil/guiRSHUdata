@@ -45,12 +45,13 @@ type EntryData struct {
 }
 
 type GenerateReport struct {
-	Month   string
-	Group   string
-	Type    string
-	Subject string
-	DayWeek string
-	Number  string
-	Entry   string
-	Created time.Time
+	Month    string
+	Group    string
+	Type     string
+	Subject  string
+	DayWeek  string
+	TypeWeek WeekType
+	Number   string
+	Entry    string
+	Created  time.Time
 }

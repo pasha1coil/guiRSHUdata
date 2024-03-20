@@ -8,4 +8,4 @@ const FileKey = "file"
 
 var TopWindow fyne.Window
 
-var Dates []DayInfo
+var DaysInfo []DayInfo

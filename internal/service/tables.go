@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var days = []string{"Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"}
+var days = []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
 
 var FinishData = map[string][]models.EntryData{}
 
@@ -179,7 +179,7 @@ func createTable(subjects []models.Subjects, group string, lessonType string, mo
 
 		upperInitials := subject.Subject
 		if strings.Contains(subject.Subject, " ") {
-			upperInitials = utils.GetInitials(subject.Subject)
+			upperInitials = utils.GetInitials(subject.Subject) + "\t" + subject.Number
 		}
 		downInitials := upperInitials
 
