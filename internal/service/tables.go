@@ -11,6 +11,7 @@ import (
 	"github.com/tealeg/xlsx"
 	"log"
 	"strings"
+	"time"
 )
 
 var days = []string{"Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"}
@@ -243,6 +244,7 @@ func createTable(subjects []models.Subjects, group string, lessonType string, mo
 func updateData(entry *widget.Entry, week int, group string, lessonType string, subjectInfo map[*widget.Entry]models.Subjects, month string) {
 	subject := subjectInfo[entry]
 	subject.Entry = entry.Text
+	subject.Created = time.Now()
 	key := utils.GenerateHash(group + lessonType)
 
 	if FinishData[key] == nil {
@@ -264,7 +266,7 @@ func updateData(entry *widget.Entry, week int, group string, lessonType string, 
 			UpperDay: make(map[string]map[string][1]models.Subjects),
 			LowerDay: make(map[string]map[string][1]models.Subjects),
 		}
-		FinishData[key] = []models.EntryData{*entryData}
+		FinishData[key] = append(FinishData[key], *entryData)
 	}
 
 	dayMap := entryData.UpperDay
@@ -276,7 +278,7 @@ func updateData(entry *widget.Entry, week int, group string, lessonType string, 
 	if dayMap[day] == nil {
 		dayMap[day] = make(map[string][1]models.Subjects)
 	}
-
-	hash := subject.Subject + subject.Number
+	subject.WeekDay = day
+	hash := subject.Subject + subject.Number + day
 	dayMap[day][utils.GenerateHash(hash)] = [1]models.Subjects{subject}
 }

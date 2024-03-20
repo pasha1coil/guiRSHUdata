@@ -1,6 +1,9 @@
 package models
 
-import "fyne.io/fyne/v2"
+import (
+	"fyne.io/fyne/v2"
+	"time"
+)
 
 type Table struct {
 	Title string
@@ -39,4 +42,15 @@ type EntryData struct {
 	Number   string
 	UpperDay map[string]map[string][1]Subjects
 	LowerDay map[string]map[string][1]Subjects
+}
+
+type GenerateReport struct {
+	Month   string
+	Group   string
+	Type    string
+	Subject string
+	DayWeek string
+	Number  string
+	Entry   string
+	Created time.Time
 }
