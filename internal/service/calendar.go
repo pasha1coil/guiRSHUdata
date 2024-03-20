@@ -22,7 +22,7 @@ func GenerateDays() []models.DayInfo {
 	current := start
 	startWeekType := models.UpperWeek
 
-	if current.Weekday() != time.Monday {
+	if current.Weekday() != time.Monday && current.Weekday() != time.Sunday {
 		for current.Weekday() != time.Sunday {
 			days = append(days, models.DayInfo{
 				Date:     current,
@@ -33,7 +33,17 @@ func GenerateDays() []models.DayInfo {
 			current = current.AddDate(0, 0, 1)
 		}
 		startWeekType = models.LowerWeek
+	} else if current.Weekday() == time.Sunday {
+
+		days = append(days, models.DayInfo{
+			Date:     current,
+			Weekday:  current.Weekday(),
+			WeekType: models.UpperWeek,
+		})
+		current = current.AddDate(0, 0, 1)
+		startWeekType = models.LowerWeek
 	}
+
 	for current.Before(end) {
 		for i := 0; i < 7; i++ {
 			weekday := current.Weekday()
