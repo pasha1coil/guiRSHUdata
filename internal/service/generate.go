@@ -1,10 +1,12 @@
 package service
 
 import (
+	"bytes"
 	"demofine/internal/models"
 	"demofine/internal/utils"
 	"github.com/tealeg/xlsx"
 	"log"
+	"time"
 )
 
 func (s *Service) generateReport(finishData map[string][]models.EntryData) {
@@ -159,7 +161,15 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 		}
 	}
 
-	if err := file.Save("report.xlsx"); err != nil {
+	fileName := "report" + time.Now().String()
+	fileBuffer := bytes.Buffer{}
+	err = file.Write(&fileBuffer)
+	if err != nil {
+		log.Fatal("Ошибка при записи содержимого файла отчета в буфер:", err)
+	}
+
+	err = s.Repo.AddFileToBadger(fileName, fileBuffer.Bytes())
+	if err != nil {
 		log.Fatal("Ошибка при сохранении файла отчета:", err)
 	}
 }

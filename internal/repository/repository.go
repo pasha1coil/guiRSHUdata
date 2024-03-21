@@ -4,6 +4,7 @@ import (
 	"demofine/internal/models"
 	"demofine/internal/utils"
 	"github.com/dgraph-io/badger/v4"
+	"strings"
 )
 
 type Repository struct {
@@ -110,4 +111,55 @@ func (r *Repository) ReadFileFromBadger() ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func (r *Repository) AddFileToBadger(fileHash string, fileData []byte) error {
+	err := r.Db.Update(func(txn *badger.Txn) error {
+		err := txn.Set([]byte(fileHash), fileData)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) GetFileData(fileName string) ([]byte, error) {
+	fileHash := utils.GenerateHash(fileName)
+	var fileData []byte
+	err := r.Db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(fileHash))
+		if err != nil {
+			return err
+		}
+		fileData, err = item.ValueCopy(nil)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fileData, nil
+}
+
+func (r *Repository) GetAllFileNames() ([]string, error) {
+	var fileNames []string
+	err := r.Db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+
+		for it.Rewind(); it.Valid(); it.Next() {
+			item := it.Item()
+			fileName := string(item.Key())
+			if strings.HasPrefix(fileName, "report") {
+				fileNames = append(fileNames, fileName)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fileNames, nil
 }
