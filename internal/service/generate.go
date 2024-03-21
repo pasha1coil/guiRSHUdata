@@ -1,12 +1,12 @@
 package service
 
 import (
-	"bytes"
 	"demofine/internal/models"
 	"demofine/internal/utils"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/dialog"
 	"github.com/tealeg/xlsx"
 	"log"
-	"time"
 )
 
 func (s *Service) generateReport(finishData map[string][]models.EntryData) {
@@ -161,15 +161,20 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 		}
 	}
 
-	fileName := "report" + time.Now().String()
-	fileBuffer := bytes.Buffer{}
-	err = file.Write(&fileBuffer)
-	if err != nil {
-		log.Fatal("Ошибка при записи содержимого файла отчета в буфер:", err)
-	}
+	dialog.ShowFolderOpen(func(uri fyne.ListableURI, err error) {
+		if err != nil || uri == nil {
+			log.Fatal("Ошибка при выборе папки:", err)
+			return
+		}
 
-	err = s.Repo.AddFileToBadger(fileName, fileBuffer.Bytes())
-	if err != nil {
-		log.Fatal("Ошибка при сохранении файла отчета:", err)
-	}
+		folderPath := uri.Path()
+
+		reportFilePath := folderPath + "/report.xlsx"
+		if err := file.Save(reportFilePath); err != nil {
+			log.Fatal("Ошибка при сохранении файла отчета:", err)
+			return
+		}
+
+		dialog.ShowInformation("Сохранено", "Файл отчета успешно сохранен в "+reportFilePath, models.TopWindow)
+	}, models.TopWindow)
 }

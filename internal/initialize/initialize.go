@@ -21,7 +21,7 @@ func MakeMenu(a fyne.App, w fyne.Window, db *badger.DB) *fyne.MainMenu {
 	svc := service.NewService(repo)
 
 	svc.InstallTables()
-
+	
 	nameInputDialogItem := fyne.NewMenuItem("Enter Name", func() {
 		ShowNameInputDialog(w, svc)
 	})

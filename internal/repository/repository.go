@@ -34,6 +34,10 @@ func (r *Repository) GetLastAddedUserFromBadger() (models.User, error) {
 				continue
 			}
 
+			if strings.Contains(string(key), "report") {
+				continue
+			}
+
 			value, err := item.ValueCopy(nil)
 			if err != nil {
 				return err
