@@ -8,7 +8,6 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/tealeg/xlsx"
-	"log"
 )
 
 func (s *Service) generateReport(finishData map[string][]models.EntryData) {
@@ -16,8 +15,8 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 
 	sheet, err := file.AddSheet("Отчет")
 	if err != nil {
-		log.Print("Ошибка при создании листа:", err)
-		return
+		errorMessage := "Ошибка при создании листа таблицы:" + err.Error()
+		dialog.ShowError(errors.New(errorMessage), models.TopWindow)
 	}
 
 	headers := []string{"№ п/п", "Название предмета", "Дата", "День недели", "Тип недели", "Факультет, курс, группа", "Тип занятий", "Часы"}

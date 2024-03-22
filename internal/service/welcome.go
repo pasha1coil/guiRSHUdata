@@ -9,8 +9,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func (s *Service) WelcomeScreen(_ fyne.Window) fyne.CanvasObject {
-	logo := canvas.NewImageFromResource(data.FyneLogoTransparent)
+func (s *Service) WelcomeScreen(_ fyne.Window, _ string) fyne.CanvasObject {
+	logo := canvas.NewImageFromResource(data.RSHULogoTransparent)
 	logo.FillMode = canvas.ImageFillContain
 	if fyne.CurrentDevice().IsMobile() {
 		logo.SetMinSize(fyne.NewSize(192, 192))
@@ -19,8 +19,6 @@ func (s *Service) WelcomeScreen(_ fyne.Window) fyne.CanvasObject {
 	}
 
 	return container.NewCenter(container.NewVBox(
-		widget.NewLabelWithStyle("Меню помощи", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		logo,
 		container.NewHBox(
 			widget.NewHyperlink("Документация", utils.ParseURL("https://github.com/pasha1coil/guiRSHUdata")),
 		),

@@ -3,13 +3,13 @@ package service
 import (
 	"demofine/internal/models"
 	"demofine/internal/utils"
+	"errors"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/tealeg/xlsx"
-	"log"
 	"strings"
 	"time"
 )
@@ -24,7 +24,8 @@ func (s *Service) MakeTableTab(w fyne.Window, month string) fyne.CanvasObject {
 
 	fileData, userName, err := s.LoadDataFromBadger()
 	if err != nil {
-		log.Println("Error loading data from Badger:", err)
+		errorMessage := "Ошибка загрузки данных из базы данных:" + err.Error()
+		dialog.ShowError(errors.New(errorMessage), models.TopWindow)
 		return nil
 	}
 
@@ -32,7 +33,8 @@ func (s *Service) MakeTableTab(w fyne.Window, month string) fyne.CanvasObject {
 
 	xlFile, err := xlsx.OpenBinary(fileData)
 	if err != nil {
-		log.Println("Error opening XLSX file:", err)
+		errorMessage := "Ошибка открытия XLSX файла:" + err.Error()
+		dialog.ShowError(errors.New(errorMessage), models.TopWindow)
 		return nil
 	}
 

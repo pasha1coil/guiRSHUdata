@@ -3,10 +3,10 @@ package initialize
 import (
 	"demofine/internal/models"
 	"demofine/internal/service"
+	"errors"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	"log"
 	"time"
 )
 
@@ -15,8 +15,8 @@ func ShowNameInputDialog(w fyne.Window, svc *service.Service) {
 
 	lastAddedUser, err := svc.Repo.GetLastAddedUserFromBadger()
 	if err != nil {
-		log.Println("Error retrieving last added user:", err)
-		return
+		errorMessage := "Ошибка при получении последнего добавленного пользователя: " + err.Error()
+		dialog.ShowError(errors.New(errorMessage), models.TopWindow)
 	}
 
 	if lastAddedUser.Name != "" {
@@ -33,8 +33,8 @@ func ShowNameInputDialog(w fyne.Window, svc *service.Service) {
 			if userName != "" {
 				err := svc.Repo.AddUserToBadger(models.User{Name: userName, TimeAdd: time.Now()})
 				if err != nil {
-					log.Println("Error saving user name:", err)
-					return
+					errorMessage := "Ошибка сохранения имени пользователя: " + err.Error()
+					dialog.ShowError(errors.New(errorMessage), models.TopWindow)
 				}
 			}
 		}

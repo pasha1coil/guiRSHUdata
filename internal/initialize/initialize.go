@@ -6,13 +6,14 @@ import (
 	"demofine/internal/service"
 	"errors"
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/dgraph-io/badger/v4"
 	"io/ioutil"
-	"log"
+	"net/url"
 	"strings"
 )
 
@@ -35,13 +36,31 @@ func MakeMenu(a fyne.App, w fyne.Window, db *badger.DB) *fyne.MainMenu {
 		}()
 	})
 
+	openURLItem := fyne.NewMenuItem("Открыть документацию", func() {
+		a := app.New()
+		url, err := url.Parse(models.ProjectRepo)
+		if err != nil {
+			errorMessage := "Не удалось получить url документации: " + err.Error()
+			dialog.ShowError(errors.New(errorMessage), models.TopWindow)
+		}
+		err = a.OpenURL(url)
+		if err != nil {
+			errorMessage := "Не удалось открыть документацию: " + err.Error()
+			dialog.ShowError(errors.New(errorMessage), models.TopWindow)
+		}
+	})
+
 	nameInputDialogItem.Icon = theme.DocumentCreateIcon()
 	loadScheduleItem.Icon = theme.ContentPasteIcon()
+	openURLItem.Icon = theme.HelpIcon()
 
 	file := fyne.NewMenu("Настройки окружения", nil)
-	main := fyne.NewMainMenu(file)
+	doc := fyne.NewMenu("Документация", nil)
+	main := fyne.NewMainMenu(file, doc)
 
 	file.Items = []*fyne.MenuItem{nameInputDialogItem, loadScheduleItem}
+
+	doc.Items = []*fyne.MenuItem{openURLItem}
 
 	showRemainingMenuItems(a, w, svc)
 
@@ -51,14 +70,13 @@ func MakeMenu(a fyne.App, w fyne.Window, db *badger.DB) *fyne.MainMenu {
 func showRemainingMenuItems(a fyne.App, w fyne.Window, svc *service.Service) {
 	err, checker := svc.Repo.CheckFileLoaded()
 	if err != nil {
-		log.Println("Error checking file loaded status:", err)
-		return
+		errorMessage := "Ошибка проверки статуса загрузки файла: " + err.Error()
+		dialog.ShowError(errors.New(errorMessage), models.TopWindow)
 	}
 
 	if checker {
-
 		content := container.NewStack()
-		title := widget.NewLabel("Component name")
+		title := widget.NewLabel("Выберите месяц для заполнения расписания")
 		setTutorial := func(t models.Table) {
 			if fyne.CurrentDevice().IsMobile() {
 				child := a.NewWindow(t.Title)

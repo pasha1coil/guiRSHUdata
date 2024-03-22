@@ -52,3 +52,15 @@ func (s *Service) createTable(month string) {
 	}
 	models.TableIndex[""] = append(models.TableIndex[""], month)
 }
+
+func (s *Service) Help() {
+	viewFunc := func(w fyne.Window, month string) fyne.CanvasObject {
+		return s.WelcomeScreen(w, month)
+	}
+	models.Tables["Документация"] = models.Table{
+		Title: "Документация",
+		View:  viewFunc,
+		Month: "Документация",
+	}
+	models.TableIndex[""] = append(models.TableIndex[""], "Документация")
+}
