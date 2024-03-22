@@ -4,14 +4,14 @@ import (
 	"demofine/data"
 	"demofine/internal/initialize"
 	"demofine/internal/models"
-	"demofine/internal/service"
+	"demofine/internal/utils"
 	"fyne.io/fyne/v2/app"
 	"github.com/dgraph-io/badger/v4"
 	"log"
 )
 
 func main() {
-	dates := service.GenerateDays()
+	dates := utils.GenerateDays()
 
 	models.DaysInfo = dates
 

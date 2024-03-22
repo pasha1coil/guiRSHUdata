@@ -2,7 +2,7 @@ package models
 
 import "fyne.io/fyne/v2"
 
-const PreferenceCurrentTutorial = "currentTutorial"
+const PreferenceCurrent = "current"
 const DbPath = "schedule.db"
 const FileKey = "file"
 

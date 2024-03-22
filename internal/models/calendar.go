@@ -17,6 +17,41 @@ var Month = map[string]int{
 	"December":  12,
 }
 
+var RussianMonth = map[string]string{
+	"January":   "Январь",
+	"February":  "Февраль",
+	"March":     "Март",
+	"April":     "Апрель",
+	"May":       "Май",
+	"June":      "Июнь",
+	"July":      "Июль",
+	"August":    "Август",
+	"September": "Сентябрь",
+	"October":   "Октябрь",
+	"November":  "Ноябрь",
+	"December":  "Декабрь",
+}
+
+var RussianWeekday = map[string]string{
+	"Monday":    "Понедельник",
+	"Tuesday":   "Вторник",
+	"Wednesday": "Среда",
+	"Thursday":  "Четверг",
+	"Friday":    "Пятница",
+	"Saturday":  "Суббота",
+	"Sunday":    "Воскресенье",
+}
+
+var EnglishWeekday = map[string]string{
+	"Понедельник": "Monday",
+	"Вторник":     "Tuesday",
+	"Среда":       "Wednesday",
+	"Четверг":     "Thursday",
+	"Пятница":     "Friday",
+	"Суббота":     "Saturday",
+	"Воскресенье": "Sunday",
+}
+
 type WeekType int
 
 const (

@@ -3,6 +3,8 @@ package service
 import (
 	"demofine/internal/models"
 	"demofine/internal/utils"
+	"errors"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/tealeg/xlsx"
@@ -14,7 +16,8 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 
 	sheet, err := file.AddSheet("Отчет")
 	if err != nil {
-		log.Fatal("Ошибка при создании листа:", err)
+		log.Print("Ошибка при создании листа:", err)
+		return
 	}
 
 	headers := []string{"№ п/п", "Название предмета", "Дата", "День недели", "Тип недели", "Факультет, курс, группа", "Тип занятий", "Часы"}
@@ -111,10 +114,10 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 				cell.Value = res.Subject
 
 				cell = row.AddCell()
-				cell.Value = day.Date.String()
+				cell.Value = day.Date.Format("2006-01-02")
 
 				cell = row.AddCell()
-				cell.Value = res.DayWeek
+				cell.Value = models.RussianWeekday[res.DayWeek]
 
 				cell = row.AddCell()
 				cell.Value = "Верхняя"
@@ -141,10 +144,10 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 				cell.Value = res.Subject
 
 				cell = row.AddCell()
-				cell.Value = day.Date.String()
+				cell.Value = day.Date.Format("2006-01-02")
 
 				cell = row.AddCell()
-				cell.Value = res.DayWeek
+				cell.Value = models.RussianWeekday[res.DayWeek]
 
 				cell = row.AddCell()
 				cell.Value = "Нижняя"
@@ -163,7 +166,7 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 
 	dialog.ShowFolderOpen(func(uri fyne.ListableURI, err error) {
 		if err != nil || uri == nil {
-			log.Fatal("Ошибка при выборе папки:", err)
+			dialog.ShowError(errors.New(fmt.Sprintf("ошибка при выборе папки: %s", err)), models.TopWindow)
 			return
 		}
 
@@ -171,7 +174,7 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 
 		reportFilePath := folderPath + "/report.xlsx"
 		if err := file.Save(reportFilePath); err != nil {
-			log.Fatal("Ошибка при сохранении файла отчета:", err)
+			dialog.ShowError(errors.New(fmt.Sprintf("ошибка при сохранении файла: %s", err)), models.TopWindow)
 			return
 		}
 

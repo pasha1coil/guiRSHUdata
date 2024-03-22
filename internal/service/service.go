@@ -40,7 +40,7 @@ func (s *Service) InstallTables() {
 }
 
 func (s *Service) createTable(month string) {
-	title := month + " Расписание"
+	title := models.RussianMonth[month] + " Расписание"
 	viewFunc := func(w fyne.Window, month string) fyne.CanvasObject {
 		return s.MakeTableTab(w, month)
 	}

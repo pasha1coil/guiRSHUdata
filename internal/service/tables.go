@@ -198,7 +198,7 @@ func createTable(subjects []models.Subjects, group string, lessonType string, mo
 		dayX := float32(115)
 		for _, day := range days {
 			upperEntry := widget.NewEntry()
-			upperEntry.SetPlaceHolder(day)
+			upperEntry.SetPlaceHolder(models.RussianWeekday[day])
 			entryWidgets = append(entryWidgets, upperEntry)
 			subjectInfoUp[upperEntry] = subject
 			upperEntry.OnChanged = func(text string) {
@@ -209,7 +209,7 @@ func createTable(subjects []models.Subjects, group string, lessonType string, mo
 			upperSubjectRow.Add(upperEntry)
 
 			downEntry := widget.NewEntry()
-			downEntry.SetPlaceHolder(day)
+			downEntry.SetPlaceHolder(models.RussianWeekday[day])
 			entryWidgets = append(entryWidgets, downEntry)
 			subjectInfoDown[downEntry] = subject
 			downEntry.OnChanged = func(text string) {
@@ -274,7 +274,7 @@ func updateData(entry *widget.Entry, week int, group string, lessonType string, 
 		dayMap = entryData.LowerDay
 	}
 
-	day := entry.PlaceHolder
+	day := models.EnglishWeekday[entry.PlaceHolder]
 	if dayMap[day] == nil {
 		dayMap[day] = make(map[string][1]models.Subjects)
 	}

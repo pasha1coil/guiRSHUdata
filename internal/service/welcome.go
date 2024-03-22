@@ -19,14 +19,10 @@ func (s *Service) WelcomeScreen(_ fyne.Window) fyne.CanvasObject {
 	}
 
 	return container.NewCenter(container.NewVBox(
-		widget.NewLabelWithStyle("Welcome to the Fyne toolkit demo app", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Меню помощи", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		logo,
 		container.NewHBox(
-			widget.NewHyperlink("fyne.io", utils.ParseURL("https://fyne.io/")),
-			widget.NewLabel("-"),
-			widget.NewHyperlink("documentation", utils.ParseURL("https://developer.fyne.io/")),
-			widget.NewLabel("-"),
-			widget.NewHyperlink("sponsor", utils.ParseURL("https://fyne.io/sponsor/")),
+			widget.NewHyperlink("Документация", utils.ParseURL("https://github.com/pasha1coil/guiRSHUdata")),
 		),
 		widget.NewLabel(""),
 	))

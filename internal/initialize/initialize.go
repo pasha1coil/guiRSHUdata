@@ -21,12 +21,12 @@ func MakeMenu(a fyne.App, w fyne.Window, db *badger.DB) *fyne.MainMenu {
 	svc := service.NewService(repo)
 
 	svc.InstallTables()
-	
-	nameInputDialogItem := fyne.NewMenuItem("Enter Name", func() {
+
+	nameInputDialogItem := fyne.NewMenuItem("Ввод имени", func() {
 		ShowNameInputDialog(w, svc)
 	})
 
-	loadScheduleItem := fyne.NewMenuItem("Load Schedule", func() {
+	loadScheduleItem := fyne.NewMenuItem("Загрузка нагрузки", func() {
 		done := make(chan struct{})
 		go loadSchedule(db, done)
 		go func() {
@@ -38,7 +38,7 @@ func MakeMenu(a fyne.App, w fyne.Window, db *badger.DB) *fyne.MainMenu {
 	nameInputDialogItem.Icon = theme.DocumentCreateIcon()
 	loadScheduleItem.Icon = theme.ContentPasteIcon()
 
-	file := fyne.NewMenu("File", nil)
+	file := fyne.NewMenu("Настройки окружения", nil)
 	main := fyne.NewMainMenu(file)
 
 	file.Items = []*fyne.MenuItem{nameInputDialogItem, loadScheduleItem}
@@ -110,7 +110,7 @@ func loadSchedule(db *badger.DB, done chan struct{}) {
 
 		fileName := reader.URI().Path()
 		if !strings.HasSuffix(strings.ToLower(fileName), ".xlsx") {
-			dialog.ShowError(errors.New("only Excel files (.xlsx) are allowed"), models.TopWindow)
+			dialog.ShowError(errors.New("только файлы Excel (.xlsx) доступны"), models.TopWindow)
 			return
 		}
 
@@ -129,7 +129,7 @@ func loadSchedule(db *badger.DB, done chan struct{}) {
 			return
 		}
 
-		dialog.ShowInformation("File Loaded", "Schedule file successfully loaded", models.TopWindow)
+		dialog.ShowInformation("Файл загружен", "Файл нагрузки успешно загружен", models.TopWindow)
 	}, models.TopWindow)
 }
 
@@ -158,22 +158,22 @@ func makeNav(setTutorial func(tutorial models.Table), loadPrevious bool) fyne.Ca
 		},
 		OnSelected: func(uid string) {
 			if t, ok := models.Tables[uid]; ok {
-				a.Preferences().SetString(models.PreferenceCurrentTutorial, uid)
+				a.Preferences().SetString(models.PreferenceCurrent, uid)
 				setTutorial(t)
 			}
 		},
 	}
 
 	if loadPrevious {
-		currentPref := a.Preferences().StringWithFallback(models.PreferenceCurrentTutorial, "welcome")
+		currentPref := a.Preferences().StringWithFallback(models.PreferenceCurrent, "welcome")
 		tree.Select(currentPref)
 	}
 
 	themes := container.NewGridWithColumns(2,
-		widget.NewButton("Dark", func() {
+		widget.NewButton("Темная", func() {
 			a.Settings().SetTheme(theme.DarkTheme())
 		}),
-		widget.NewButton("Light", func() {
+		widget.NewButton("Светлая", func() {
 			a.Settings().SetTheme(theme.LightTheme())
 		}),
 	)

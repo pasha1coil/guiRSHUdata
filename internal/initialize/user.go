@@ -27,7 +27,7 @@ func ShowNameInputDialog(w fyne.Window, svc *service.Service) {
 		widget.NewFormItem("Name:", entry),
 	}
 
-	dialog.ShowForm("Enter Your Name", "Save", "Cancel", formItems, func(accepted bool) {
+	dialog.ShowForm("Введи ваше имя", "Сохранить", "Отмена", formItems, func(accepted bool) {
 		if accepted {
 			userName := entry.Text
 			if userName != "" {
