@@ -5,16 +5,38 @@ import (
 	"demofine/internal/initialize"
 	"demofine/internal/models"
 	"demofine/internal/utils"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"github.com/dgraph-io/badger/v4"
 	"log"
+	"sync"
+)
+
+var (
+	daysMutex sync.Mutex
 )
 
 func main() {
-	dates := utils.GenerateDays()
+	var wg sync.WaitGroup
 
-	models.DaysInfo = dates
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		days := utils.GenerateDays()
+
+		daysMutex.Lock()
+		defer daysMutex.Unlock()
+
+		models.DaysInfo = days
+	}()
+
+	go func() {
+		wg.Wait()
+		fmt.Println("Даты сгенерированы")
+	}()
 
 	a := app.NewWithID("RSHU.reports")
 	a.SetIcon(data.RSHULogo)

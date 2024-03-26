@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"demofine/internal/adapters"
 	"demofine/internal/models"
 	"time"
 )
@@ -8,6 +9,7 @@ import (
 func GenerateDays() []models.DayInfo {
 	days := []models.DayInfo{}
 	var start, end time.Time
+
 	cu := time.Now()
 	mo := models.Month[cu.Month().String()]
 
@@ -21,6 +23,8 @@ func GenerateDays() []models.DayInfo {
 
 	current := start
 	startWeekType := models.UpperWeek
+
+	productCalendar := adapters.ProductClient(start, end)
 
 	if current.Weekday() != time.Monday && current.Weekday() != time.Sunday {
 		for current.Weekday() != time.Monday {
@@ -58,6 +62,17 @@ func GenerateDays() []models.DayInfo {
 			startWeekType = models.LowerWeek
 		} else {
 			startWeekType = models.UpperWeek
+		}
+	}
+
+	for _, date := range productCalendar.Days {
+		for index, ourDate := range days {
+			if date.Date == ourDate.Date.Format("02.01.2006") {
+				if _, ok := models.SpecialTypes[date.TypeText]; ok {
+					days = append(days[:index], days[index+1:]...)
+					continue
+				}
+			}
 		}
 	}
 	return days
