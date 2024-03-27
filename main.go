@@ -5,7 +5,6 @@ import (
 	"demofine/internal/initialize"
 	"demofine/internal/models"
 	"demofine/internal/utils"
-	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"github.com/dgraph-io/badger/v4"
@@ -35,7 +34,6 @@ func main() {
 
 	go func() {
 		wg.Wait()
-		fmt.Println("Даты сгенерированы")
 	}()
 
 	a := app.NewWithID("RSHU.reports")

@@ -8,6 +8,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/tealeg/xlsx"
+	"sort"
+	"strconv"
 )
 
 func (s *Service) generateReport(finishData map[string][]models.EntryData) {
@@ -26,18 +28,33 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 		cell.Value = header
 	}
 
-	forGenerateUp := make(map[string]models.GenerateReport)
-	forGenerateDown := make(map[string]models.GenerateReport)
+	upCh := make(chan map[string]models.GenerateReport)
+	downCh := make(chan map[string]models.GenerateReport)
 
-	for _, entries := range finishData {
-		for _, entry := range entries {
-			for _, dayMap := range entry.UpperDay {
-				for _, subjects := range dayMap {
-					for _, subject := range subjects {
-						hash := utils.GenerateHash(entry.Month + entry.Type + entry.Group + subject.Number + subject.Subject + subject.WeekDay)
-						if data, ok := forGenerateUp[hash]; ok {
-							if data.Created.Before(subject.Created) {
-								forGenerateUp[hash] = models.GenerateReport{
+	go func() {
+		upMap := make(map[string]models.GenerateReport)
+		for _, entries := range finishData {
+			for _, entry := range entries {
+				for _, dayMap := range entry.UpperDay {
+					for _, subjects := range dayMap {
+						for _, subject := range subjects {
+							hash := utils.GenerateHash(entry.Month + entry.Type + entry.Group + subject.Number + subject.Subject + subject.WeekDay)
+							if data, ok := upMap[hash]; ok {
+								if data.Created.Before(subject.Created) {
+									upMap[hash] = models.GenerateReport{
+										Month:    entry.Month,
+										Group:    entry.Group,
+										Type:     entry.Type,
+										Subject:  subject.Subject,
+										DayWeek:  subject.WeekDay,
+										Number:   subject.Number,
+										Entry:    subject.Entry,
+										Created:  subject.Created,
+										TypeWeek: models.UpperWeek,
+									}
+								}
+							} else {
+								upMap[hash] = models.GenerateReport{
 									Month:    entry.Month,
 									Group:    entry.Group,
 									Type:     entry.Type,
@@ -49,29 +66,38 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 									TypeWeek: models.UpperWeek,
 								}
 							}
-						} else {
-							forGenerateUp[hash] = models.GenerateReport{
-								Month:    entry.Month,
-								Group:    entry.Group,
-								Type:     entry.Type,
-								Subject:  subject.Subject,
-								DayWeek:  subject.WeekDay,
-								Number:   subject.Number,
-								Entry:    subject.Entry,
-								Created:  subject.Created,
-								TypeWeek: models.UpperWeek,
-							}
 						}
 					}
 				}
 			}
-			for _, dayMap := range entry.LowerDay {
-				for _, subjects := range dayMap {
-					for _, subject := range subjects {
-						hash := utils.GenerateHash(entry.Month + entry.Type + entry.Group + subject.Number + subject.Subject + subject.WeekDay)
-						if data, ok := forGenerateDown[hash]; ok {
-							if data.Created.Before(subject.Created) {
-								forGenerateDown[hash] = models.GenerateReport{
+		}
+		upCh <- upMap
+	}()
+
+	go func() {
+		downMap := make(map[string]models.GenerateReport)
+		for _, entries := range finishData {
+			for _, entry := range entries {
+				for _, dayMap := range entry.LowerDay {
+					for _, subjects := range dayMap {
+						for _, subject := range subjects {
+							hash := utils.GenerateHash(entry.Month + entry.Type + entry.Group + subject.Number + subject.Subject + subject.WeekDay)
+							if data, ok := downMap[hash]; ok {
+								if data.Created.Before(subject.Created) {
+									downMap[hash] = models.GenerateReport{
+										Month:    entry.Month,
+										Group:    entry.Group,
+										Type:     entry.Type,
+										Subject:  subject.Subject,
+										DayWeek:  subject.WeekDay,
+										Number:   subject.Number,
+										Entry:    subject.Entry,
+										Created:  subject.Created,
+										TypeWeek: models.LowerWeek,
+									}
+								}
+							} else {
+								downMap[hash] = models.GenerateReport{
 									Month:    entry.Month,
 									Group:    entry.Group,
 									Type:     entry.Type,
@@ -83,24 +109,23 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 									TypeWeek: models.LowerWeek,
 								}
 							}
-						} else {
-							forGenerateDown[hash] = models.GenerateReport{
-								Month:    entry.Month,
-								Group:    entry.Group,
-								Type:     entry.Type,
-								Subject:  subject.Subject,
-								DayWeek:  subject.WeekDay,
-								Number:   subject.Number,
-								Entry:    subject.Entry,
-								Created:  subject.Created,
-								TypeWeek: models.LowerWeek,
-							}
 						}
 					}
 				}
 			}
 		}
-	}
+		downCh <- downMap
+	}()
+
+	forGenerateUp := <-upCh
+	forGenerateDown := <-downCh
+
+	sort.Slice(models.DaysInfo, func(i, j int) bool {
+		return models.DaysInfo[i].Date.Before(models.DaysInfo[j].Date)
+	})
+
+	hoursByNumber := make(map[string]int)
+
 	for _, day := range models.DaysInfo {
 		for _, res := range forGenerateUp {
 			if day.Date.Month().String() == res.Month && day.Weekday.String() == res.DayWeek && day.WeekType == res.TypeWeek {
@@ -129,6 +154,14 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 
 				cell = row.AddCell()
 				cell.Value = res.Entry
+
+				hours := hoursByNumber[res.Number]
+				intEntry, err := strconv.Atoi(res.Entry)
+				if err != nil {
+					intEntry = 0
+				}
+				hoursByNumber[res.Number] = hours + intEntry
+
 			}
 		}
 
@@ -159,8 +192,33 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 
 				cell = row.AddCell()
 				cell.Value = res.Entry
+
+				hours := hoursByNumber[res.Number]
+				intEntry, err := strconv.Atoi(res.Entry)
+				if err != nil {
+					intEntry = 0
+				}
+				hoursByNumber[res.Number] = hours + intEntry
 			}
 		}
+	}
+
+	for i := 0; i < 5; i++ {
+		row := sheet.AddRow()
+		if i == 4 {
+			cell := row.AddCell()
+			cell.Value = "№ п/п"
+			cell = row.AddCell()
+			cell.Value = "Общее количество часов"
+		}
+	}
+
+	for number, hours := range hoursByNumber {
+		row := sheet.AddRow()
+		cell := row.AddCell()
+		cell.Value = number
+		cell = row.AddCell()
+		cell.SetInt(hours)
 	}
 
 	dialog.ShowFolderOpen(func(uri fyne.ListableURI, err error) {
@@ -179,4 +237,6 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 
 		dialog.ShowInformation("Сохранено", "Файл отчета успешно сохранен в "+reportFilePath, models.TopWindow)
 	}, models.TopWindow)
+
+	FinishData = make(map[string][]models.EntryData)
 }
