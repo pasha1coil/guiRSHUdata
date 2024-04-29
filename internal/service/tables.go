@@ -186,18 +186,18 @@ func createTable(subjects []models.Subjects, group string, lessonType string, mo
 		downInitials := upperInitials
 
 		upperLabel := widget.NewLabel(upperInitials)
-		upperLabel.Resize(fyne.NewSize(100, 30))
+		upperLabel.Resize(fyne.NewSize(200, 30))
 		upperLabel.Move(fyne.NewPos(0, subjectRowY))
 		upperLabel.Wrapping = fyne.TextWrapWord
 		upperSubjectRow.Add(upperLabel)
 
 		downLabel := widget.NewLabel(downInitials)
-		downLabel.Resize(fyne.NewSize(100, 30))
+		downLabel.Resize(fyne.NewSize(200, 30))
 		downLabel.Move(fyne.NewPos(0, subjectRowY+200))
 		downLabel.Wrapping = fyne.TextWrapWord
 		downSubjectRow.Add(downLabel)
 
-		dayX := float32(115)
+		dayX := float32(200)
 		for _, day := range days {
 			upperEntry := widget.NewEntry()
 			upperEntry.SetPlaceHolder(models.RussianWeekday[day])
