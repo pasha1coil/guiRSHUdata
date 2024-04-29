@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var days = []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+var days = []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
 
 var FinishData = map[string][]models.EntryData{}
 

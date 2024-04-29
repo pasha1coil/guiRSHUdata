@@ -3,7 +3,7 @@
   Name = "RSHU reports"
   ID = "RSHU.reports"
   Version = "2.4.0"
-  Build = 17
+  Build = 18
 
 [Development]
   HelperText = "This binary was built with debug symbols"

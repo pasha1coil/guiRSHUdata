@@ -124,7 +124,7 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 		return models.DaysInfo[i].Date.Before(models.DaysInfo[j].Date)
 	})
 
-	hoursByNumber := make(map[string]int)
+	hoursByNumber := make(map[string]float64)
 
 	for _, day := range models.DaysInfo {
 		for _, res := range forGenerateUp {
@@ -156,7 +156,7 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 				cell.Value = res.Entry
 
 				hours := hoursByNumber[res.Number]
-				intEntry, err := strconv.Atoi(res.Entry)
+				intEntry, err := strconv.ParseFloat(res.Entry, 2)
 				if err != nil {
 					intEntry = 0
 				}
@@ -194,7 +194,7 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 				cell.Value = res.Entry
 
 				hours := hoursByNumber[res.Number]
-				intEntry, err := strconv.Atoi(res.Entry)
+				intEntry, err := strconv.ParseFloat(res.Entry, 2)
 				if err != nil {
 					intEntry = 0
 				}
@@ -218,7 +218,7 @@ func (s *Service) generateReport(finishData map[string][]models.EntryData) {
 		cell := row.AddCell()
 		cell.Value = number
 		cell = row.AddCell()
-		cell.SetInt(hours)
+		cell.SetFloat(hours)
 	}
 
 	dialog.ShowFolderOpen(func(uri fyne.ListableURI, err error) {
